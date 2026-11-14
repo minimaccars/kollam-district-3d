@@ -24,3 +24,6 @@ __pycache__/
 /discover-wards.py
 /count-wards.py
 /fetch-directory-sources.py
+
+/release-zip.py
+/clean-directory.py
