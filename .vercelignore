@@ -1,0 +1,11 @@
+/.venv/
+/.git/
+/.openai/
+/data/
+/pipeline/
+/*.py
+/*.log
+/node_modules/
+/.env*
+
+/live-*

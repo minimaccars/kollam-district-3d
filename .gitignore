@@ -27,3 +27,10 @@ __pycache__/
 
 /release-zip.py
 /clean-directory.py
+.vercel
+.env*
+
+/live-*
+/.vercel/
+
+/.openai/
