@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kollam 3D</title>
+<meta name="description" content="Kollam in 3D: a coast-to-hills district model from open geographic data. Explore the backwaters, take a district tour, send a postcard.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wght@400;500;600&family=Caveat:wght@500&family=DM+Sans:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Jost:wght@600;700&family=Noto+Sans+Malayalam:wght@600&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="labels"></div>
+
+<div id="loader">
+  <div class="lin">
+    <p class="mlh">കൊല്ലം</p>
+    <h1>Kollam</h1>
+    <p class="tag">coast, backwaters & hills, in three dimensions</p>
+    <div id="bar"><i></i></div>
+    <p id="stage">Reading the map</p>
+  </div>
+</div>
+
+<header id="title">
+  <p class="ml">കൊല്ലം</p>
+  <h1>Kollam</h1>
+  <p class="sub"><b id="count">–</b> buildings, placed from the map</p>
+  <nav id="actions">
+    <button id="bTour"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span><b>District tour</b><i>9 stops, coast to hills</i></span></button>
+    <button id="bFood"><svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 4 0V3M8 3v18M17 3c-2 1-3 3.5-3 6s1 3 3 3v9"/></svg><span><b>Backwater trail</b><i>5 views along the water</i></span></button>
+    <button id="bCard"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M12 9v6M15 9h3v3h-3zM6 10h3M6 13h3"/></svg><span><b>Postcard</b><i>Take a view home</i></span></button>
+  </nav>
+</header>
+
+<div class="panel" id="tools">
+  <button id="compass" title="Face north"><svg id="needle" viewBox="0 0 24 24"><path d="M12 3l4 10h-8z" fill="#ffb347"/><path d="M12 21l-4-8h8z" fill="#7d8798"/></svg></button>
+  <button id="tLabels" class="tg on">Labels</button>
+  <button id="tWards" class="tg">Boundary</button>
+  <button id="tMl" class="tg" title="Malayalam place names">മലയാളം</button>
+  <select id="quality" title="Detail"><option value="auto">Auto</option><option value="low">Low detail</option><option value="medium">Medium detail</option><option value="high">High detail</option></select>
+  <button id="bAbout" class="tg">About</button>
+</div>
+
+<div id="hint">Drag to move · scroll or pinch to zoom · right-drag or Ctrl-drag to turn · WASD to fly</div>
+
+<div id="hud"><i id="streamNote">Loading nearby buildings…</i><b id="hudName">Kollam</b><span id="hudPos"></span></div>
+
+<section class="panel" id="tour">
+  <div class="th"><span id="tourKind"></span><span id="tourStep"></span><button id="tourEnd" title="End tour">✕</button></div>
+  <div class="tn"><em id="tourNo">01</em><h2 id="tourName"></h2></div>
+  <p id="tourSub"></p>
+  <p id="tourText"></p>
+  <div id="dots"></div>
+  <div class="tb"><button id="tourPrev">← Back</button><button id="tourAuto">Autoplay</button><button id="tourNext" class="pri">Next stop →</button></div>
+  <p class="fine">Viewpoint trail · not a road-navigation route.</p>
+</section>
+
+<div class="panel" id="dock">
+  <div id="chips"></div>
+  <div id="timeRow">
+    <span id="clock">17:30 IST</span>
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>
+    <input id="time" type="range" min="5.5" max="22.5" step="0.02" value="17.6" aria-label="Time of day">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.500 4a8 8 0 1 0 10.500 10.500z"/></svg>
+    <div id="presets"><button data-t="6.95">Sunrise</button><button data-t="12.6">Midday</button><button data-t="17.6">Golden hour</button><button data-t="20.5">Night</button></div>
+  </div>
+</div>
+
+<aside class="panel" id="about">
+  <div class="ah"><h2>ABOUT THIS MODEL</h2><button data-close>Close</button></div>
+  <p>Kollam district, from its Arabian Sea coast and Ashtamudi backwaters to the Western Ghats. The renderer, typography, glass panels, camera perspective and lighting follow the original Kozhikode 3D project.</p>
+  <p>Building footprints cover the mapped district boundary. Terrain, imagery, roads and water extend across the surrounding landscape. Zoom in for buildings and trees; use Whole district for the wider view.</p>
+  <h3>Where building heights come from</h3>
+  <div class="row"><span>Mapped height or floor count</span><div class="m"><i id="aMappedBar"></i></div><b id="aMapped"></b></div>
+  <div class="row"><span>Estimated from footprint size</span><div class="m"><i id="aEstBar"></i></div><b id="aEst"></b></div>
+  <p><span id="aMappedN"></span> of <span id="aCount"></span> buildings have mapped heights or floor counts. Others are plausible estimates, not measurements. Map coverage can contain omissions.</p>
+  <h3>From geographic data</h3>
+  <ul><li>Building footprints, roads, rail and water: Overture Maps, 2026-10-21.0</li><li>Elevation: Mapzen / AWS Terrarium terrain tiles</li><li>Ground imagery: Sentinel-2 cloudless 2020, EOX</li><li><span id="aWards"></span> district boundary from Open Data Kerala / OpenStreetMap (2021 snapshot), for visualization, not legal or survey use</li></ul>
+  <h3>Generated details</h3>
+  <ul><li>Unmapped building heights, roofs, facade colors and night windows</li><li><span id="aTrees"></span> trees and palms scattered using satellite greenery</li><li>Animated water shading and decorative street-light glow</li><li>Stylised Thangassery Lighthouse and Punalur bridge, with approximate dimensions and placement</li><li>Sun position for Kollam on an illustrative 15 January</li></ul>
+  <h3>Limits</h3>
+  <p>This is a visual model, not traffic or flood prediction. Viewpoint pins locate areas, not entrances. The Jatayu sculpture and Palaruvi waterfall are not modelled. Imagery is historical and becomes soft at street level. The tour lines connect viewpoints and are not navigable road routes.</p>
+  <h3>Sources &amp; original project</h3>
+  <ul class="src"><li><a href="https://github.com/jasimcm/kozhikode-3d" target="_blank" rel="noopener">Original renderer &amp; theme: jasimcm / kozhikode-3d</a></li><li><a href="https://overturemaps.org" target="_blank" rel="noopener">Overture Maps Foundation</a> (includes OpenStreetMap contributors; ODbL)</li><li><a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless 2020 © EOX</a>, contains modified Copernicus Sentinel data; CC BY-NC-SA 4.0, non-commercial</li><li><a href="https://github.com/opendatakerala/kl_district" target="_blank" rel="noopener">Open Data Kerala district boundaries</a>, © OpenStreetMap contributors, ODbL</li><li><a href="https://kollam.nic.in/en/tourist-places/" target="_blank" rel="noopener">District tourism information</a></li></ul>
+</aside>
+
+<div id="postcard">
+  <div class="pc panel">
+    <div class="ah"><h2>SEND A POSTCARD</h2><button data-close>Close</button></div>
+    <canvas id="pcCanvas"></canvas>
+    <div class="pcf">
+      <div id="pcStyles"><button data-s="classic" class="on">Classic</button><button data-s="bold">Full bleed</button></div>
+      <input id="pcMsg" maxlength="48" placeholder="Add a line (optional)">
+      <input id="pcFrom" maxlength="20" placeholder="From">
+    </div>
+    <div class="pcb"><button id="pcLink">Copy link to this view</button><button id="pcShare">Share</button><button id="pcSave" class="pri">Download PNG</button></div>
+    <p class="fine">The card shows the view you had on screen. Close this, reframe or change the time of day, and open it again for a new shot.</p>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
