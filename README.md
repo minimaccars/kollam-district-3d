@@ -2,6 +2,8 @@
 
 An adaptation of jasimcm/kozhikode-3d, preserving its original CSS, typography, 42-degree camera lens, default perspective, materials, lighting, controls and postcards. Geography is newly generated for Kollam, not relocated Kozhikode assets.
 
+**Public source and licensing:** The original weather modules, their stylesheet, local server and weather tests are MIT-licensed; the exact file scope is in [LICENSE](LICENSE). The full application has mixed licensing: the original Kozhikode renderer has no verified code license, and some datasets have restricted or unverified terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). An upstream license or permission is still needed before the complete application can be described as fully open source.
+
 ## Run the supplied build
 
 Install Node.js, then run `node server.mjs` from this folder. Open http://127.0.0.1:5184. The supplied build needs no API key. Google Fonts requires network access. Do not open index.html directly from a file URL: module and asset requests need HTTP.
