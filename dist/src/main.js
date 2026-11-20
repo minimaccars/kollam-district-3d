@@ -1,4 +1,5 @@
 import {initDirectory} from './directory.js';
+import {initWeather} from './weather.js';
 import * as THREE from 'three';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -132,7 +133,7 @@ function flyTo(v, dur) {
 }
 controls.addEventListener('start', () => { fly = null; tour.auto && setAuto(false); $('#hint').classList.add('gone'); });
 const keys = new Set();
-addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; keys.add(e.key.toLowerCase()); if (e.key === 'Escape') closePanels(); });
+addEventListener('keydown', (e) => { if (e.target.closest('input, textarea, select, button, a, [contenteditable], #weatherPanel')) return; keys.add(e.key.toLowerCase()); if (e.key === 'Escape') closePanels(); });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 
 function resize() {
@@ -252,6 +253,7 @@ async function load() {
   flyTo(start, 4.5); setTimeout(() => $('#hint').classList.add('gone'), 9000);
   renderer.setAnimationLoop(frame);
   window.__k = { scene, camera, renderer, flyTo, setTime, env, T, controls };
+  initWeather({getLocation: () => { const [lon, lat] = T.toLL(controls.target.x, controls.target.z); return {lat, lon, name: place.name}; }});
 }
 
 function setupLabels() {

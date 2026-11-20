@@ -2,5 +2,5 @@
   "name": "kollam-district-3d",
   "private": true,
   "type": "module",
-  "scripts": {"dev": "node server.mjs"}
+  "scripts": {"dev": "node server.mjs", "test": "node --test test/*.test.mjs"}
 }

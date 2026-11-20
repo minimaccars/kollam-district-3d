@@ -27,6 +27,16 @@ Python 3.12 with duckdb, numpy, shapely, pillow, requests. Run from pipeline/ af
 
 Pipeline scripts retain upstream file names. The original Blender scripts are retained as upstream references, not used in the Kollam build. Kollam landmarks are generated directly in dist/src/models.js.
 
+## Current weather, humidity and air quality
+
+The glass conditions panel follows the map centre after it stops moving. Open it to scroll through weather, relative humidity and US AQI, plus 24-hour hourly forecasts. Weather includes apparent temperature, wind and precipitation. GSAP 3.13.0 / ScrollTrigger is bundled locally; reduced-motion preferences disable animation. The original map stylesheet and camera are preserved.
+
+Data is fetched directly over HTTPS from Open-Meteo's weather and air-quality APIs, with no API key or backend. Readings refresh every 10 minutes, are cached in memory for 10 minutes (16 locations maximum), and use coordinates rounded to 0.01 degrees. Movement is debounced, prior requests are cancelled, and weather/AQI failures are handled independently. Missing data stays unavailable; stale estimates are labelled. Dates and times use Asia/Kolkata, independently of the illustrative map lighting slider.
+
+These are model estimates, not local sensors. Air quality uses the CAMS global model (about 45 km) and **US AQI**, not India's National AQI. Do not interpret coordinate precision as ward-level weather or AQI accuracy. The source timestamp is the valid time, not the provider's model-run time. The free Open-Meteo service is for non-commercial use and has usage limits; see https://open-meteo.com/en/terms before commercial reuse.
+
+Sources: https://open-meteo.com/en/docs and https://open-meteo.com/en/docs/air-quality-api . Weather © Open-Meteo; air composition © Copernicus Atmosphere Monitoring Service, via Open-Meteo; data CC BY 4.0. GSAP license: https://gsap.com/standard-license/ .
+
 ## Attribution
 
 - Original renderer, UI and theme: https://github.com/jasimcm/kozhikode-3d . No top-level code license was present in the supplied archive; preserve attribution and obtain the author's permission for redistribution where needed.
