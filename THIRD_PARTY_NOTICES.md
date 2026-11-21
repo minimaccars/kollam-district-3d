@@ -1,6 +1,6 @@
 # Third-party materials
 
-This public repository contains materials with different license terms. The scoped MIT license in [LICENSE](LICENSE) covers only the five original files listed there. It is not a license for the complete application or its datasets.
+This public repository contains materials with different license terms. The scoped MIT license in [LICENSE](LICENSE) covers only the original files listed there. It is not a license for the complete application or its datasets.
 
 | Material | Source and status |
 | --- | --- |
@@ -11,6 +11,8 @@ This public repository contains materials with different license terms. The scop
 | Satellite imagery | [Sentinel-2 cloudless 2020 / EOX](https://s2maps.eu/), containing modified Copernicus Sentinel data 2020; CC BY-NC-SA 4.0, including its non-commercial restriction. |
 | Terrain | Mapzen / AWS Terrain Tiles and the underlying elevation providers. Retain their dataset-specific attribution and terms. |
 | Three.js | Bundled upstream dependency; [MIT](https://github.com/mrdoob/three.js/blob/dev/LICENSE). Its license applies to Three.js itself. |
+| MapLibre GL JS 5.24.1 | Regional 3D map renderer; BSD 3-Clause and bundled component licenses. Full notices are retained in `dist/vendor/maplibre/LICENSE.txt`. |
+| Regional vector maps | [OpenFreeMap](https://openfreemap.org/) / OpenMapTiles / OpenStreetMap. Attribution is displayed on the regional map. These external data services retain their own terms. |
 | GSAP and ScrollTrigger 3.13.0 | Copyright GreenSock. [GSAP Standard License](https://gsap.com/standard-license/); notices are retained in the bundled JavaScript. Excluded from this project's MIT license. |
 | Weather and air quality | [Open-Meteo](https://open-meteo.com/) and [Copernicus CAMS](https://ads.atmosphere.copernicus.eu/), accessed at runtime. Open-Meteo data is CC BY 4.0; the free hosted API has separate [non-commercial usage terms and limits](https://open-meteo.com/en/terms). |
 

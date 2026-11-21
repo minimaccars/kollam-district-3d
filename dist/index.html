@@ -4,12 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kollam 3D</title>
-<meta name="description" content="Kollam in 3D: a coast-to-hills district model from open geographic data. Explore the backwaters, take a district tour, send a postcard.">
+<meta name="description" content="Explore Kollam, all of Kerala and South India in 3D. Satellite imagery, terrain, mapped buildings, district outlines and current weather.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wght@400;500;600&family=Caveat:wght@500&family=DM+Sans:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Jost:wght@600;700&family=Noto+Sans+Malayalam:wght@600&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
+<link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css">
 <link rel="stylesheet" href="src/style.css">
 <link rel="stylesheet" href="src/weather.css">
+<link rel="stylesheet" href="src/regional.css">
 <script defer src="vendor/gsap/gsap.min.js"></script>
 <script defer src="vendor/gsap/ScrollTrigger.min.js"></script>
 </head>
@@ -76,6 +78,9 @@
   <div class="ah"><h2>ABOUT THIS MODEL</h2><button data-close>Close</button></div>
   <p>Kollam district, from its Arabian Sea coast and Ashtamudi backwaters to the Western Ghats. The renderer, typography, glass panels, camera perspective and lighting follow the original Kozhikode 3D project.</p>
   <p>Building footprints cover the mapped district boundary. Terrain, imagery, roads and water extend across the surrounding landscape. Zoom in for buildings and trees; use Whole district for the wider view.</p>
+  <h3>Kerala &amp; South India</h3>
+  <p>Use Explore farther to open Kerala or South India. These regional views stream satellite imagery, terrain, roads, place names and mapped 3D buildings as you move. Jump to all 14 Kerala districts or major cities across the peninsula. Building coverage and height accuracy vary. The detailed Kollam model, tours, wards and healthcare directory remain available through Kollam.</p>
+  <p>Regional Kerala district outlines are the same 2021 Open Data Kerala / OpenStreetMap snapshot, simplified for display. Regional map data comes from OpenFreeMap / OpenMapTiles / OpenStreetMap, rendered with MapLibre GL JS. Satellite imagery remains Sentinel-2 cloudless 2020, EOX. Terrain is Mapzen / AWS. Regional map sources require an internet connection.</p>
   <h3>Where building heights come from</h3>
   <div class="row"><span>Mapped height or floor count</span><div class="m"><i id="aMappedBar"></i></div><b id="aMapped"></b></div>
   <div class="row"><span>Estimated from footprint size</span><div class="m"><i id="aEstBar"></i></div><b id="aEst"></b></div>

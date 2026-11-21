@@ -8,6 +8,11 @@ The MIT License below applies only to these original additions:
 - dist/src/weather.css
 - server.mjs
 - test/weather-data.test.mjs
+- dist/src/regional.js
+- dist/src/regional.css
+- dist/src/regions-data.js
+- pipeline/package_regions.py
+- test/regions.test.mjs
 
 It does not license or relicense the original jasimcm/kozhikode-3d code,
 modifications to that code, bundled dependencies, geographic datasets,

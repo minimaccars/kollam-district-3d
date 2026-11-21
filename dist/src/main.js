@@ -1,5 +1,6 @@
 import {initDirectory} from './directory.js';
 import {initWeather} from './weather.js';
+import {initRegional} from './regional.js';
 import * as THREE from 'three';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 import { Sky } from 'three/addons/objects/Sky.js';
@@ -11,6 +12,8 @@ import { Terrain, buildGround, buildingMaterial, buildChunk, buildTrees, buildLa
 import { buildLandmarks, lampMat } from './models.js';
 import { LANDMARKS, VIEWS, TOURS } from './places.js';
 import { initPostcard } from './postcard.js';
+
+let regional = null;
 
 const $ = (s) => document.querySelector(s);
 const D2R = Math.PI / 180, clamp = (v, a, b) => Math.min(b, Math.max(a, v)), lerp = (a, b, t) => a + (b - a) * t;
@@ -105,9 +108,10 @@ function setTime(h) {
   $('#clock').textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} IST`;
   $('#time').value = h;
   document.querySelectorAll('#presets button').forEach((b) => b.classList.toggle('on', Math.abs(+b.dataset.t - h) < 0.3));
+  regional?.setTime(h);
 }
 let timeTween = null;
-function tweenTime(to, dur = 2.2) { timeTween = { a: env.time, b: to, t: 0, dur }; }
+function tweenTime(to, dur = 2.2) { if (regional?.active) { setTime(to); regional.updateHash(); return; } timeTween = { a: env.time, b: to, t: 0, dur }; }
 
 // ------------------------------------------------------------------ camera
 const controls = new MapControls(camera, canvas);
@@ -126,6 +130,7 @@ function readCam() {
   return { x: controls.target.x, z: controls.target.z, d, h: (Math.atan2(dx, -dz) / D2R + 360) % 360, t: Math.acos(clamp(dy / d, -1, 1)) / D2R };
 }
 function flyTo(v, dur) {
+  if (regional?.active) { regional.flyTo(v); return; }
   const a = readCam(), [x, z] = v.ll ? T.ll(...v.ll) : [v.x, v.z];
   const b = { x, z, d: v.d, h: v.h, t: v.t }, span = Math.hypot(b.x - a.x, b.z - a.z);
   b.h = a.h + ((((b.h - a.h) % 360) + 540) % 360 - 180);
@@ -133,7 +138,7 @@ function flyTo(v, dur) {
 }
 controls.addEventListener('start', () => { fly = null; tour.auto && setAuto(false); $('#hint').classList.add('gone'); });
 const keys = new Set();
-addEventListener('keydown', (e) => { if (e.target.closest('input, textarea, select, button, a, [contenteditable], #weatherPanel')) return; keys.add(e.key.toLowerCase()); if (e.key === 'Escape') closePanels(); });
+addEventListener('keydown', (e) => { if (regional?.active || e.target.closest('input, textarea, select, button, a, [contenteditable], #weatherPanel')) return; keys.add(e.key.toLowerCase()); if (e.key === 'Escape') closePanels(); });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 
 function resize() {
@@ -228,7 +233,7 @@ async function load() {
   lamps = buildLamps(roads, T); scene.add(lamps);
   wardLines = buildWards(wards, T); scene.add(wardLines);
   setupLabels(); setupUI();
-  initDirectory({T,scene,controls,flyTo}).catch(console.error);
+  initDirectory({T,scene,controls,flyTo,onOpen: () => regional?.close()}).catch(console.error);
   const start = parseHash() || VIEWS.home;
   const [sx, sz] = T.ll(...start.ll);
   applyCam({ x: sx, z: sz, d: start.d * 2.6, h: start.h - 35, t: 40 }); setTime(start.time ?? 17.6);
@@ -253,7 +258,14 @@ async function load() {
   flyTo(start, 4.5); setTimeout(() => $('#hint').classList.add('gone'), 9000);
   renderer.setAnimationLoop(frame);
   window.__k = { scene, camera, renderer, flyTo, setTime, env, T, controls };
-  initWeather({getLocation: () => { const [lon, lat] = T.toLL(controls.target.x, controls.target.z); return {lat, lon, name: place.name}; }});
+  regional = initRegional({getTime: () => env.time, setTime, buildingCount: fmtIN(man.buildings),
+    onActivate: () => { endTour(); closePanels(); keys.clear(); fly = null; timeTween = null; controls.enabled = false; renderer.setAnimationLoop(null); const directory = $('#directoryPanel'); if (directory) directory.style.display = 'none'; },
+    onDeactivate: () => { controls.enabled = true; keys.clear(); clock.getDelta(); setupChips(); updateHud(readCam()); renderer.setAnimationLoop(frame); writeHash(); }
+  });
+  regional.setLabels(showLabels); regional.setBoundaries(showWards); regional.setLanguage(useMl);
+  window.__k.regional = regional;
+  initWeather({getLocation: () => { if (regional?.active) return regional.getLocation(); const [lon, lat] = T.toLL(controls.target.x, controls.target.z); return {lat, lon, name: place.name}; }});
+  if (regional.initial) regional.open(regional.initial.region, regional.initial);
 }
 
 function setupLabels() {
@@ -282,6 +294,7 @@ const beacon = new THREE.Group();
 }
 let routeLine = null;
 function startTour(id) {
+  regional?.close();
   closePanels(); tour.id = id; const tr = TOURS[id];
   document.body.dataset.tour = id; $('#tour').classList.add('open');
   $('#tourKind').textContent = tr.title;
@@ -313,23 +326,27 @@ function applyQuality(v) {
   bloom.enabled = Qs.bloom; renderer.shadowMap.enabled = Qs.sh > 0;
   if (Qs.sh) { sun.shadow.mapSize.set(Qs.sh, Qs.sh); sun.shadow.map?.dispose(); sun.shadow.map = null; }
   $('#quality').options[0].textContent = `Auto · ${autoQ()[0].toUpperCase() + autoQ().slice(1)}`;
-  resize(); setTime(env.time);
+  resize(); setTime(env.time); regional?.setQuality(Qn);
 }
-function setupUI() {
+function setupChips() {
   const chips = $('#chips');
+  chips.replaceChildren();
   for (const p of LANDMARKS.filter((p) => p.chip)) { const b = document.createElement('button'); b.textContent = p.chip; b.onclick = () => flyTo({ ll: p.ll, ...p.v }); chips.appendChild(b); }
   const all = document.createElement('button'); all.textContent = 'Whole district'; all.onclick = () => flyTo(VIEWS.city); chips.appendChild(all);
-  $('#time').addEventListener('input', (e) => { timeTween = null; setTime(+e.target.value); });
+}
+function setupUI() {
+  setupChips();
+  $('#time').addEventListener('input', (e) => { timeTween = null; setTime(+e.target.value); if (regional?.active) regional.updateHash(); });
   document.querySelectorAll('#presets button').forEach((b) => (b.onclick = () => tweenTime(+b.dataset.t)));
   const tog = (id, fn) => ($(id).onclick = (e) => { const on = e.currentTarget.classList.toggle('on'); fn(on); });
-  tog('#tLabels', (on) => (showLabels = on)); tog('#tWards', (on) => { showWards = on; wardLines.visible = on; });
-  tog('#tMl', (on) => { useMl = on; relabel(); });
+  tog('#tLabels', (on) => { showLabels = on; regional?.setLabels(on); }); tog('#tWards', (on) => { showWards = on; wardLines.visible = on; regional?.setBoundaries(on); });
+  tog('#tMl', (on) => { useMl = on; relabel(); regional?.setLanguage(on); });
   $('#quality').onchange = (e) => applyQuality(e.target.value);
   const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   connection?.addEventListener?.('change', () => { updatePreloadProfile(); if ($('#quality').value === 'auto') applyQuality('auto'); });
   $('#bAbout').onclick = () => { const o = !$('#about').classList.contains('open'); closePanels(); $('#about').classList.toggle('open', o); };
   document.querySelectorAll('[data-close]').forEach((b) => (b.onclick = closePanels));
-  $('#compass').onclick = () => { const c = readCam(); flyTo({ x: c.x, z: c.z, d: c.d, h: 0, t: c.t }, 1.2); };
+  $('#compass').onclick = () => { if (regional?.active) { regional.faceNorth(); return; } const c = readCam(); flyTo({ x: c.x, z: c.z, d: c.d, h: 0, t: c.t }, 1.2); };
   $('#bTour').onclick = () => (tour.id === 'sights' ? endTour() : startTour('sights'));
   $('#bFood').onclick = () => (tour.id === 'food' ? endTour() : startTour('food'));
   $('#tourPrev').onclick = () => goStop(tour.i - 1); $('#tourNext').onclick = () => goStop(tour.i + 1);
@@ -340,7 +357,10 @@ function setupUI() {
   $('#aMapped').textContent = (100 * s.mapped / tot).toFixed(1) + '%'; $('#aEst').textContent = (100 * s.est / tot).toFixed(1) + '%';
   $('#aMappedBar').style.width = Math.max(1, 100 * s.mapped / tot) + '%'; $('#aEstBar').style.width = 100 * s.est / tot + '%';
   $('#aMappedN').textContent = fmtIN(s.mapped);
-  initPostcard({ renderer, composer, getPlace: () => place, getTime: () => env.time, getLink: () => { writeHash(); return location.href; }, closePanels });
+  initPostcard({ renderer, composer, getPlace: () => regional?.active ? regional.getLocation() : place,
+    getBrand: () => regional?.active ? regional.brand() : {name: 'Kollam', ml: 'കൊല്ലം', stamp: 'QUILON', slug: 'kollam'},
+    capture: async () => { if (regional?.active) return regional.capture(); composer.render(); return renderer.domElement.toDataURL('image/jpeg', .95); },
+    getTime: () => env.time, getLink: () => { writeHash(); return location.href; }, closePanels });
 }
 
 // ------------------------------------------------------------------ shareable view
@@ -351,6 +371,7 @@ function parseHash() {
   return { ll: [clamp(lon, 76.18, 77.52), clamp(lat, 8.30, 9.62)], d: clamp(d, 150, 165000), h, t: clamp(t, 0, 85), time: Number.isFinite(time) ? clamp(time, 5, 23) : undefined };
 }
 function writeHash() {
+  if (regional?.active) { regional.updateHash(); return; }
   const c = readCam(), [lon, lat] = T.toLL(c.x, c.z);
   history.replaceState(null, '', `#v=${lat.toFixed(5)},${lon.toFixed(5)},${c.d.toFixed(0)},${c.h.toFixed(0)},${c.t.toFixed(0)},${env.time.toFixed(2)}`);
 }

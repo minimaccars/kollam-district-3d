@@ -2,7 +2,17 @@
 
 An adaptation of jasimcm/kozhikode-3d, preserving its original CSS, typography, 42-degree camera lens, default perspective, materials, lighting, controls and postcards. Geography is newly generated for Kollam, not relocated Kozhikode assets.
 
-**Public source and licensing:** The original weather modules, their stylesheet, local server and weather tests are MIT-licensed; the exact file scope is in [LICENSE](LICENSE). The full application has mixed licensing: the original Kozhikode renderer has no verified code license, and some datasets have restricted or unverified terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). An upstream license or permission is still needed before the complete application can be described as fully open source.
+**Public source and licensing:** The original weather and regional modules, their stylesheets, local server and tests are MIT-licensed; the exact file scope is in [LICENSE](LICENSE). The full application has mixed licensing: the original Kozhikode renderer has no verified code license, and some datasets have restricted or unverified terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). An upstream license or permission is still needed before the complete application can be described as fully open source.
+
+## Kerala and South India
+
+Use **Explore farther → Kerala / South India** to switch from the detailed Kollam model to a regional 3D map. Both views retain the glass panels, typography, brass controls, satellite context and inclined perspective. Regional data streams on demand: EOX Sentinel-2 cloudless 2020 imagery, Mapzen/AWS terrain and OpenFreeMap/OpenMapTiles/OpenStreetMap roads, place labels and extruded buildings. No API key is required. Building coverage and heights vary; missing footprints are not generated. Satellite imagery remains historical, including the existing non-commercial imagery terms.
+
+The jump menu includes all **14 Kerala districts**, Kerala cities and Western Ghats viewpoints, plus Bengaluru, Chennai, Hyderabad, Mysuru, Madurai, Coimbatore, Mangaluru, Tirupati, Vijayawada, Visakhapatnam, Kanyakumari and Puducherry. District outlines come from the existing 2021 Open Data Kerala snapshot, simplified for display, not legal or survey use. Toggle Boundary to show outlines; click a district in the overview to open it.
+
+Regional views use a locally bundled MapLibre GL JS 5.24.1 renderer, loaded only when requested. The Kollam renderer pauses while a regional view is active. Weather follows the active map centre; shared links preserve the regional camera and illustrative lighting time. Postcards capture the active view and region name. Tours and the wards/healthcare directory return to the detailed Kollam model; those listings have not been expanded statewide.
+
+To rebuild the district overlay from `data/raw/districts.geojson`, run `python pipeline/package_regions.py`. New regional modules are included in the scoped MIT license. Run `npm test` for the weather, regional links and geographic validation checks.
 
 ## Run the supplied build
 

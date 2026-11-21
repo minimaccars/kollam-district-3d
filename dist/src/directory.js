@@ -1,9 +1,9 @@
 import {buildWards} from './city.js';
 export async function initDirectory(api){
  const [wards,facilities,resorts]=await Promise.all(['ward-details','facilities','resorts'].map(n=>fetch(`data/${n}.json`).then(r=>r.json())));
- const panel=document.createElement('aside');panel.className='panel';panel.style.cssText='display:none;right:18px;top:76px;width:min(390px,94vw);max-height:74vh;overflow:auto;padding:18px;z-index:10';
+ const panel=document.createElement('aside');panel.id='directoryPanel';panel.className='panel';panel.style.cssText='display:none;right:18px;top:76px;width:min(390px,94vw);max-height:74vh;overflow:auto;padding:18px;z-index:10';
  panel.innerHTML='<button id="dirClose" style="float:right">Close ✕</button><h2>Explore Kollam</h2><p>Wards, healthcare & stays</p><select id="dirKind"><option value="hospital">Hospitals</option><option value="clinic">Clinics</option><option value="dispensary">Dispensaries</option><option value="ward">Ward boundaries</option><option value="resort">Resorts</option></select><select id="dirBody"></select><input id="dirSearch" placeholder="Search name or ward number"><button id="dirNearest">Nearest clinic to map centre</button><p id="dirNote"></p><div id="dirResults"></div>';
- document.body.append(panel);const button=document.createElement('button');button.textContent='Wards & healthcare';document.querySelector('#tools').append(button);button.onclick=()=>{panel.style.display='block';render()};panel.querySelector('#dirClose').onclick=()=>panel.style.display='none';
+ document.body.append(panel);const button=document.createElement('button');button.textContent='Wards & healthcare';document.querySelector('#tools').append(button);button.onclick=()=>{api.onOpen?.();panel.style.display='block';render()};panel.querySelector('#dirClose').onclick=()=>panel.style.display='none';
  const $=s=>panel.querySelector(s),kind=$('#dirKind'),body=$('#dirBody'),search=$('#dirSearch'),list=$('#dirResults');
  for(const lb of [...new Set(wards.map(w=>w.lb))].sort()){const o=new Option(lb,lb);body.add(o)}body.value='Kollam';let layer=null,anchor=null;
  const distance=(a,b)=>{const r=Math.PI/180,dlat=(a[1]-b[1])*r,dlon=(a[0]-b[0])*r;return 6371*2*Math.asin(Math.sqrt(Math.sin(dlat/2)**2+Math.cos(a[1]*r)*Math.cos(b[1]*r)*Math.sin(dlon/2)**2))};
