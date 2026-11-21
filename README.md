@@ -37,17 +37,16 @@ The same static `dist/` build is published to three places.
 | Vercel (legacy) | `anwarsadique615@gmail.com` | https://healthmap-ai-ten.vercel.app |
 | Firebase Hosting | `demo1-f3e4c` | https://demo1-f3e4c.web.app |
 
-Push to `main` first, then publish:
+Push to `main`; the Vercel `healthmap-ai` project is connected to this GitHub repository and redeploys automatically. Firebase Hosting is deployed manually.
 
 ```sh
 git push origin main
 
+# Vercel deploys automatically from GitHub. To publish manually:
+vercel deploy --prod --project healthmap-ai
+
 # Firebase Hosting (config lives in .firebaserc and firebase.json)
 firebase deploy --only hosting
-
-# Vercel, primary project "healthmap-ai" (minimaccars account)
-# Run from a folder containing dist/ and vercel.json.
-vercel deploy --prod --project healthmap-ai
 ```
 
 `firebase.json` serves `dist/` with `cleanUrls` and cache headers for `/data` and `/vendor`. The Vercel project uses `vercel.json` with `framework: null` and `outputDirectory: dist`. The legacy Vercel project is intentionally kept as a separate deployment and is not deleted.
