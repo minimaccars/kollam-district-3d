@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kollam 3D</title>
-<meta name="description" content="Explore Kollam, all of Kerala and South India in 3D. Satellite imagery, terrain, mapped buildings, district outlines and current weather.">
+<meta name="description" content="Explore Kerala and Southern, Northern, Western and Eastern India in 3D. Satellite imagery, terrain, mapped buildings, district outlines and current weather.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wght@400;500;600&family=Caveat:wght@500&family=DM+Sans:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Jost:wght@600;700&family=Noto+Sans+Malayalam:wght@600&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
@@ -78,9 +78,10 @@
   <div class="ah"><h2>ABOUT THIS MODEL</h2><button data-close>Close</button></div>
   <p>Kollam district, from its Arabian Sea coast and Ashtamudi backwaters to the Western Ghats. The renderer, typography, glass panels, camera perspective and lighting follow the original Kozhikode 3D project.</p>
   <p>Building footprints cover the mapped district boundary. Terrain, imagery, roads and water extend across the surrounding landscape. Zoom in for buildings and trees; use Whole district for the wider view.</p>
-  <h3>Kerala &amp; South India</h3>
-  <p>Use Explore farther to open Kerala or South India. These regional views stream satellite imagery, terrain, roads, place names and mapped 3D buildings as you move. Jump to all 14 Kerala districts or major cities across the peninsula. Building coverage and height accuracy vary. The detailed Kollam model, tours, wards and healthcare directory remain available through Kollam.</p>
+  <h3>Explore across India</h3>
+  <p>Use Explore farther to open Kerala, South India, North India, Western India or Eastern India. These regional views stream satellite imagery, terrain, roads, place names and mapped 3D buildings as you move. Jump to all 14 Kerala districts or major cities from Srinagar and New Delhi to Mumbai, Kolkata and the Northeast. Region buttons are geographic view presets, not official administrative divisions. Building coverage and height accuracy vary. The detailed Kollam model, tours, wards and healthcare directory remain available through Kollam.</p>
   <p>Regional Kerala district outlines are the same 2021 Open Data Kerala / OpenStreetMap snapshot, simplified for display. Regional map data comes from OpenFreeMap / OpenMapTiles / OpenStreetMap, rendered with MapLibre GL JS. Satellite imagery remains Sentinel-2 cloudless 2020, EOX. Terrain is Mapzen / AWS. Regional map sources require an internet connection.</p>
+  <p>New northern, western and eastern city viewpoints use <a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames</a> location data, checked through <a href="https://open-meteo.com/en/docs/geocoding-api" target="_blank" rel="noopener">Open-Meteo geocoding</a>. Viewpoints locate city areas rather than entrances.</p>
   <h3>Where building heights come from</h3>
   <div class="row"><span>Mapped height or floor count</span><div class="m"><i id="aMappedBar"></i></div><b id="aMapped"></b></div>
   <div class="row"><span>Estimated from footprint size</span><div class="m"><i id="aEstBar"></i></div><b id="aEst"></b></div>
@@ -91,7 +92,9 @@
   <ul><li>Unmapped building heights, roofs, facade colors and night windows</li><li><span id="aTrees"></span> trees and palms scattered using satellite greenery</li><li>Animated water shading and decorative street-light glow</li><li>Stylised Thangassery Lighthouse and Punalur bridge, with approximate dimensions and placement</li><li>Sun position for Kollam on an illustrative 15 January</li></ul>
   <h3>Limits</h3>
   <p>This is a visual model, not traffic or flood prediction. Viewpoint pins locate areas, not entrances. The Jatayu sculpture and Palaruvi waterfall are not modelled. Imagery is historical and becomes soft at street level. The tour lines connect viewpoints and are not navigable road routes.</p>
-  <h3>Sources &amp; original project</h3>
+  <h3 id="mapCredits" tabindex="-1">Map sources &amp; credits</h3>
+  <ul class="src"><li><a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> · Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></li><li><a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen / AWS Terrain Tiles</a> · SRTM / USGS and <a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">underlying terrain providers</a></li><li><a href="https://maplibre.org/" target="_blank" rel="noopener">MapLibre GL JS</a>, BSD 3-Clause and bundled component licenses</li></ul>
+  <h3>Original project &amp; other sources</h3>
   <ul class="src"><li><a href="https://github.com/jasimcm/kozhikode-3d" target="_blank" rel="noopener">Original renderer &amp; theme: jasimcm / kozhikode-3d</a></li><li><a href="https://overturemaps.org" target="_blank" rel="noopener">Overture Maps Foundation</a> (includes OpenStreetMap contributors; ODbL)</li><li><a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless 2020 © EOX</a>, contains modified Copernicus Sentinel data; CC BY-NC-SA 4.0, non-commercial</li><li><a href="https://github.com/opendatakerala/kl_district" target="_blank" rel="noopener">Open Data Kerala district boundaries</a>, © OpenStreetMap contributors, ODbL</li><li><a href="https://kollam.nic.in/en/tourist-places/" target="_blank" rel="noopener">District tourism information</a></li></ul>
 </aside>
 

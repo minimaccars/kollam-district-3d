@@ -2,9 +2,23 @@
 // Copyright (c) 2026 minimaccars. See ../../LICENSE for scope and full terms.
 export const REGIONS = {
   kerala: {name: 'Kerala', ml: 'കേരളം', bounds: [[74.75, 8.15], [77.65, 12.85]], centre: [76.25, 10.55], zoom: 6.7},
-  south: {name: 'South India', ml: 'ദക്ഷിണേന്ത്യ', bounds: [[73, 7.6], [85.1, 20.3]], centre: [78.1, 13.4], zoom: 5.3}
+  south: {name: 'South India', ml: 'ദക്ഷിണേന്ത്യ', bounds: [[73, 7.6], [85.1, 20.3]], centre: [78.1, 13.4], zoom: 5.3},
+  north: {name: 'North India', ml: 'ഉത്തരേന്ത്യ', bounds: [[72.2, 25], [85, 36]], centre: [77.6, 30.1], zoom: 5.3},
+  west: {name: 'Western India', ml: 'പശ്ചിമേന്ത്യ', bounds: [[68, 14.8], [80.5, 29.8]], centre: [73.8, 22.5], zoom: 5.3},
+  east: {name: 'Eastern India', ml: 'കിഴക്കേ ഇന്ത്യ', bounds: [[83, 19], [97.5, 29.5]], centre: [87.5, 24.2], zoom: 5.2}
 };
-export const MAX_BOUNDS = [[71.5, 6], [87, 22]];
+// Accepted extent for share links, not a camera constraint: constraining a tilted
+// terrain camera to a small geographic box can displace its target.
+export const MAX_BOUNDS = [[67, 6], [98, 37]];
+
+export function overviewCamera(region, width, height) {
+  const preset = REGIONS[region];
+  const [[west, south], [east, north]] = preset.bounds;
+  const mercatorY = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+  const dx = (east - west) / 360, dy = (mercatorY(north) - mercatorY(south)) / (2 * Math.PI);
+  const zoom = Math.min(Math.log2(Math.max(240, width - 60) / (512 * dx)), Math.log2(Math.max(260, height - 140) / (512 * dy))) - .15;
+  return {center: [...preset.centre], zoom: Math.max(4, Math.min(8, zoom)), bearing: 20, pitch: 38, padding: {top:0,bottom:0,left:0,right:0}};
+}
 // Viewpoints locate city centres, not entrances or navigation destinations.
 export const CITIES = [
   {id: 'trivandrum', name: 'Thiruvananthapuram', ll: [76.9366, 8.5241], region: 'kerala'},
@@ -31,7 +45,35 @@ export const CITIES = [
   {id: 'hyderabad', name: 'Hyderabad', ll: [78.4867, 17.385], region: 'south'},
   {id: 'tirupati', name: 'Tirupati', ll: [79.4192, 13.6288], region: 'south'},
   {id: 'vijayawada', name: 'Vijayawada', ll: [80.648, 16.5062], region: 'south'},
-  {id: 'visakhapatnam', name: 'Visakhapatnam', ll: [83.2185, 17.6868], region: 'south'}
+  {id: 'visakhapatnam', name: 'Visakhapatnam', ll: [83.2185, 17.6868], region: 'south'},
+  // These city centres were checked against GeoNames via Open-Meteo geocoding.
+  {id: 'delhi', name: 'New Delhi', ll: [77.2148,28.62137], region:'north'},
+  {id: 'chandigarh', name: 'Chandigarh', ll: [76.7884,30.73629], region:'north'},
+  {id: 'amritsar', name: 'Amritsar', ll: [74.87534,31.62234], region:'north'},
+  {id: 'shimla', name: 'Shimla', ll: [77.16662,31.10442], region:'north', zoom:13.8},
+  {id: 'dehradun', name: 'Dehradun', ll: [78.03392,30.32443], region:'north'},
+  {id: 'agra', name: 'Agra', ll: [78.01667,27.18333], region:'north'},
+  {id: 'lucknow', name: 'Lucknow', ll: [80.92313,26.83928], region:'north'},
+  {id: 'varanasi', name: 'Varanasi', ll: [83.01041,25.31668], region:'north'},
+  {id: 'srinagar', name: 'Srinagar', ll: [74.80555,34.08565], region:'north'},
+  {id: 'leh', name: 'Leh', ll: [77.58402,34.16504], region:'north', zoom:13.8},
+  {id: 'mumbai', name: 'Mumbai', ll: [72.88261,19.07283], region:'west'},
+  {id: 'pune', name: 'Pune', ll: [73.85535,18.51957], region:'west'},
+  {id: 'ahmedabad', name: 'Ahmedabad', ll: [72.58727,23.02579], region:'west'},
+  {id: 'surat', name: 'Surat', ll: [72.83023,21.19594], region:'west'},
+  {id: 'jaipur', name: 'Jaipur', ll: [75.78781,26.91962], region:'west'},
+  {id: 'udaipur', name: 'Udaipur', ll: [73.71346,24.58584], region:'west'},
+  {id: 'nagpur', name: 'Nagpur', ll: [79.08491,21.14631], region:'west'},
+  {id: 'kolkata', name: 'Kolkata', ll: [88.36304,22.56263], region:'east'},
+  {id: 'bhubaneswar', name: 'Bhubaneswar', ll: [85.83385,20.27241], region:'east'},
+  {id: 'puri', name: 'Puri', ll: [85.82494,19.79825], region:'east'},
+  {id: 'patna', name: 'Patna', ll: [85.13563,25.59408], region:'east'},
+  {id: 'ranchi', name: 'Ranchi', ll: [85.3094,23.34316], region:'east'},
+  {id: 'guwahati', name: 'Guwahati', ll: [91.7458,26.1844], region:'east'},
+  {id: 'shillong', name: 'Shillong', ll: [91.88313,25.56892], region:'east'},
+  {id: 'gangtok', name: 'Gangtok', ll: [88.61216,27.32574], region:'east', zoom:13.8},
+  {id: 'darjeeling', name: 'Darjeeling', ll: [88.26667,27.03333], region:'east', zoom:13.8},
+  {id: 'imphal', name: 'Imphal', ll: [93.9442,24.80805], region:'east'}
 ];
 
 export function parseRegionHash(hash) {
@@ -41,7 +83,7 @@ export function parseRegionHash(hash) {
   const values = (params.get('view') || '').split(',').map(Number);
   if (values.length !== 6 || !values.every(Number.isFinite)) return {region};
   const [lat, lon, zoom, bearing, pitch, hour] = values;
-  if (lon < 71.5 || lon > 87 || lat < 6 || lat > 22 || zoom < 4 || zoom > 18 || pitch < 0 || pitch > 75 || hour < 5 || hour > 23) return {region};
+  if (lon < MAX_BOUNDS[0][0] || lon > MAX_BOUNDS[1][0] || lat < MAX_BOUNDS[0][1] || lat > MAX_BOUNDS[1][1] || zoom < 4 || zoom > 18 || pitch < 0 || pitch > 75 || hour < 5 || hour > 23) return {region};
   return {region, camera: {center: [lon, lat], zoom, bearing: ((bearing % 360) + 360) % 360, pitch}, hour};
 }
 

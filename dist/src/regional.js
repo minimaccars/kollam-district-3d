@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 minimaccars. See ../../LICENSE for scope and full terms.
-import {REGIONS, CITIES, MAX_BOUNDS, createRegionalStyle, districtAt, parseRegionHash, regionHash} from './regions-data.js';
+import {REGIONS, CITIES, overviewCamera, createRegionalStyle, districtAt, parseRegionHash, regionHash} from './regions-data.js';
 
 let libraryPromise;
 function loadLibrary() {
@@ -22,14 +22,20 @@ export function initRegional(api) {
   container.setAttribute('aria-label', 'Interactive 3D regional map'); document.body.prepend(container);
   const panel = document.createElement('section'); panel.id = 'regionControls'; panel.className = 'panel'; panel.setAttribute('aria-label', 'Map coverage');
   panel.innerHTML = `<p class="region-caption">Explore farther</p><nav class="region-switch" aria-label="Map region">
-    <button data-region-choice="kollam" aria-pressed="true">Kollam</button><button data-region-choice="kerala" aria-pressed="false">Kerala</button><button data-region-choice="south" aria-pressed="false">South India</button></nav>
+    <button data-region-choice="kollam" aria-pressed="true">Kollam</button><button data-region-choice="kerala" aria-pressed="false">Kerala</button><button data-region-choice="south" aria-pressed="false">South India</button>
+    <button data-region-choice="north" aria-pressed="false">North India</button><button data-region-choice="west" aria-pressed="false">West India</button><button data-region-choice="east" aria-pressed="false">East India</button></nav>
     <select id="regionDestination" aria-label="Jump to district or city" hidden></select>
     <p id="regionNote" role="status">Detailed Kollam model · expand the map above.</p>`;
   document.body.append(panel);
   const loading = document.createElement('div'); loading.id = 'regionLoading'; loading.hidden = true; loading.setAttribute('role', 'status');
   loading.innerHTML = '<p>Opening the wider map</p><small>Loading terrain, imagery and place names…</small><button id="regionRetry" hidden>Retry regional map</button>';
   document.body.append(loading);
+  const credits = document.createElement('button'); credits.id = 'regionCreditsButton'; credits.hidden = true;
+  credits.textContent = 'i'; credits.setAttribute('aria-label','Map credits'); credits.title = 'Map credits';
+  credits.onclick = () => { $('#postcard').classList.remove('open'); $('#about').classList.add('open'); $('#mapCredits').scrollIntoView({block:'start'}); $('#mapCredits').focus({preventScroll:true}); };
+  document.body.append(credits);
   let map = null, mapPromise = null, districts = null, active = false, region = 'kerala', version = 0;
+  let cameraIntent = null;
   let language = false, labels = true, boundaries = false, hour = api.getTime();
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const districtPromise = fetch('data/kerala-districts.geojson').then(response => {
@@ -39,13 +45,13 @@ export function initRegional(api) {
   function note(message, error = false) { $('#regionNote').textContent = message; $('#regionNote').dataset.error = String(error); }
   function updateDestinations() {
     const select = $('#regionDestination'); select.replaceChildren(new Option('Jump to a district or city', ''));
-    if (districts) {
+    if (districts && ['kerala','south'].includes(region)) {
       const group = document.createElement('optgroup'); group.label = 'Kerala · all 14 districts';
       for (const feature of districts.features) group.append(new Option(feature.properties.name + ' district', 'district:' + feature.properties.name));
       select.append(group);
     }
-    for (const area of region === 'south' ? ['kerala', 'south'] : ['kerala']) {
-      const group = document.createElement('optgroup'); group.label = area === 'kerala' ? 'Kerala cities & hills' : 'South India cities';
+    for (const area of region === 'south' ? ['kerala', 'south'] : [region]) {
+      const group = document.createElement('optgroup'); group.label = area === 'kerala' ? 'Kerala cities & hills' : REGIONS[area].name + ' cities';
       for (const city of CITIES.filter(city => city.region === area)) group.append(new Option(city.name, 'city:' + city.id));
       select.append(group);
     }
@@ -59,7 +65,7 @@ export function initRegional(api) {
     if (!active) return null;
     const centre = map?.getCenter(); const [lon, lat] = centre ? [centre.lng, centre.lat] : REGIONS[region].centre;
     const district = districtAt(districts, [lon, lat]);
-    let name = district ? (language ? district.ml : district.name) : 'South India';
+    let name = district ? (language ? district.ml : district.name) : 'India';
     if (!map || map.getZoom() < 7) name = REGIONS[region].name;
     else {
       const city = CITIES.map(city => ({city, distance: Math.hypot((city.ll[0] - lon) * Math.cos(lat * Math.PI / 180), city.ll[1] - lat)})).sort((a,b) => a.distance - b.distance)[0];
@@ -103,12 +109,12 @@ export function initRegional(api) {
     mapPromise = (async () => {
       const [library] = await Promise.all([loadLibrary(), districtPromise]);
       library.setWorkerCount(2); library.setMaxParallelImageRequests(8);
-      map = new library.Map({container, style: createRegionalStyle(), center: REGIONS[region].centre, zoom: REGIONS[region].zoom,
-        bearing: 20, pitch: 38, minZoom: 4, maxZoom: 18, maxPitch: 75, maxBounds: MAX_BOUNDS, renderWorldCopies: false,
+      map = new library.Map({container, style: createRegionalStyle(), center: REGIONS[region].centre, zoom: REGIONS[region].zoom, trackResize: false,
+        bearing: 20, pitch: 38, minZoom: 4, maxZoom: 18, maxPitch: 75, renderWorldCopies: false,
         attributionControl: false, maxTileCacheSize: 100, canvasContextAttributes: {antialias: false}, pixelRatio: Math.min(devicePixelRatio, innerWidth < 820 ? 1.25 : 1.5)});
-      map.addControl(new library.AttributionControl({compact: true}), 'bottom-right');
       map.setVerticalFieldOfView?.(42);
-      map.on('move', updateHud); map.on('moveend', updateHash);
+      map.on('move', updateHud); map.on('moveend', () => { cameraIntent = null; updateHash(); });
+      map.on('movestart', event => { if (event.originalEvent) cameraIntent = null; });
       map.on('error', () => { if (active) note('Some regional tiles are unavailable. Move or zoom to retry.', true); });
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('Regional map timed out')), 35000);
@@ -131,30 +137,40 @@ export function initRegional(api) {
   function jumpDistrict(name) {
     const feature = districts?.features.find(feature => feature.properties.name === name); if (!feature || !map) return;
     const [w,s,e,n] = feature.properties.bounds;
-    map.fitBounds([[w,s],[e,n]], {padding: innerWidth < 820 ? 55 : 100, bearing: 20, pitch: 42, duration: reduced() ? 0 : 1300});
+    map.setPadding({top:0,bottom:0,left:0,right:0});
+    const target = map.cameraForBounds([[w,s],[e,n]], {padding: innerWidth < 820 ? 55 : 100});
+    if (target) cameraIntent = {center: target.center, zoom: target.zoom, bearing:20, pitch:42};
+    map.fitBounds([[w,s],[e,n]], {padding: innerWidth < 820 ? 55 : 100, retainPadding: false, bearing: 20, pitch: 42, duration: reduced() ? 0 : 1300});
     note(`${name} district · zoom in for mapped buildings. Boundaries are a 2021 snapshot.`);
   }
   function flyTo(view) {
     if (!active || !map || !view.ll) return;
     const zoom = view.zoom ?? Math.max(8, Math.min(17, 16 - Math.log2((view.d || 1500) / 550)));
-    map.flyTo({center: view.ll, zoom, bearing: view.h ?? 62, pitch: Math.min(view.t ?? 68, 75), duration: reduced() ? 0 : 1800});
+    map.setPadding({top:0,bottom:0,left:0,right:0});
+    cameraIntent = {center: view.ll, zoom, bearing: view.h ?? 62, pitch: Math.min(view.t ?? 68, 75)};
+    map.flyTo({...cameraIntent, duration: reduced() ? 0 : 1800});
   }
   function updateChips() {
     const chips = $('#chips'); chips.replaceChildren();
-    for (const city of CITIES.filter(city => region === 'south' ? ['kochi','kozhikode','bengaluru','chennai','hyderabad','madurai','visakhapatnam'].includes(city.id) : ['trivandrum','kollam','kochi','munnar','kozhikode','kannur','kasaragod'].includes(city.id))) {
+    const choices = region === 'south' ? CITIES.filter(city => ['kochi','kozhikode','bengaluru','chennai','hyderabad','madurai','visakhapatnam'].includes(city.id)) : CITIES.filter(city => city.region === region).slice(0,7);
+    for (const city of choices) {
       const button = document.createElement('button'); button.textContent = city.name; button.onclick = () => flyTo({ll: city.ll, zoom: city.zoom || 14.8}); chips.append(button);
     }
-    const all = document.createElement('button'); all.textContent = 'Whole ' + (region === 'south' ? 'South India' : 'Kerala'); all.onclick = () => fitRegion(); chips.append(all);
+    const all = document.createElement('button'); all.textContent = 'Whole ' + REGIONS[region].name; all.onclick = () => fitRegion(); chips.append(all);
   }
   function fitRegion() {
     if (!map) return;
-    map.fitBounds(REGIONS[region].bounds, {padding: innerWidth < 820 ? {top: 110, bottom: 100, left: 20, right: 20} : {top: 70, bottom: 130, left: 300, right: 350}, bearing: 20, pitch: 38, duration: reduced() ? 0 : 1500});
+    map.stop(); map.setPadding({top:0,bottom:0,left:0,right:0});
+    const size = container.getBoundingClientRect();
+    cameraIntent = overviewCamera(region, size.width, size.height);
+    map.easeTo({...cameraIntent, duration: reduced() ? 0 : 1500});
   }
   async function open(choice, saved) {
     if (!REGIONS[choice]) return close();
     const request = ++version; region = choice;
     if (!active) { active = true; api.onActivate(); }
     document.body.dataset.region = choice; container.hidden = false; loading.hidden = false; $('#regionRetry').hidden = true;
+    credits.hidden = false;
     loading.querySelector('p').textContent = 'Opening the wider map'; loading.querySelector('small').textContent = 'Loading terrain, imagery and place names…';
     for (const button of panel.querySelectorAll('[data-region-choice]')) button.setAttribute('aria-pressed', String(button.dataset.regionChoice === choice));
     $('#regionDestination').hidden = false;
@@ -169,7 +185,7 @@ export function initRegional(api) {
       if (saved?.camera) { map.jumpTo(saved.camera); if (saved.hour !== undefined) api.setTime(saved.hour); }
       else fitRegion();
       loading.hidden = true; setTime(api.getTime());
-      note(choice === 'kerala' ? '14 districts · select a city, or zoom in for mapped buildings.' : 'Explore the peninsula · mapped buildings appear as you zoom in.');
+      note(choice === 'kerala' ? '14 districts · select a city, or zoom in for mapped buildings.' : choice === 'east' ? 'Eastern & Northeast views · select a city or zoom in for mapped buildings.' : REGIONS[choice].name + ' · select a city or zoom in for mapped buildings.');
       updateHud(); updateHash();
     } catch {
       if (request !== version || !active) return;
@@ -179,7 +195,7 @@ export function initRegional(api) {
   }
   function close() {
     version++; if (!active) return;
-    active = false; map?.stop(); container.hidden = true; loading.hidden = true; delete document.body.dataset.region;
+    active = false; map?.stop(); container.hidden = true; loading.hidden = true; credits.hidden = true; delete document.body.dataset.region;
     for (const button of panel.querySelectorAll('[data-region-choice]')) button.setAttribute('aria-pressed', String(button.dataset.regionChoice === 'kollam'));
     $('#regionDestination').hidden = true;
     $('#title h1').textContent = 'Kollam'; $('#title .ml').textContent = 'കൊല്ലം';
@@ -194,6 +210,12 @@ export function initRegional(api) {
     else { const city = CITIES.find(city => 'city:' + city.id === value); if (city) { flyTo({ll: city.ll, zoom: city.zoom || 14.8}); note(city.name + ' · building coverage and heights vary with the source data.'); } }
   };
   $('#regionRetry').onclick = () => open(region);
+  addEventListener('resize', () => {
+    if (!active || !map) return;
+    const centre = map.getCenter();
+    const target = cameraIntent || {center:[centre.lng,centre.lat],zoom:map.getZoom(),bearing:map.getBearing(),pitch:map.getPitch()};
+    map.stop(); map.resize(); map.jumpTo({...target,padding:{top:0,bottom:0,left:0,right:0}});
+  });
   return {get active() {return active;}, get map() {return map;}, get region() {return region;}, open, close, flyTo, getLocation, setLabels, setBoundaries, setLanguage, setTime, updateHash,
     faceNorth: () => map?.easeTo({bearing: 0, duration: reduced() ? 0 : 800}),
     setQuality: value => map?.setPixelRatio(Math.min(devicePixelRatio, value === 'low' ? 1 : value === 'medium' ? 1.25 : 1.5)),
@@ -201,7 +223,7 @@ export function initRegional(api) {
       if (!active || !map) return reject(new Error('Regional map is not open'));
       map.once('render', () => { try { resolve(map.getCanvas().toDataURL('image/jpeg', .95)); } catch (error) { reject(error); } }); map.triggerRepaint();
     }),
-    brand: () => ({name: REGIONS[region].name, ml: REGIONS[region].ml, stamp: region === 'south' ? 'SOUTH INDIA' : 'KERALA', slug: region}),
+    brand: () => ({name: REGIONS[region].name, ml: REGIONS[region].ml, stamp: REGIONS[region].name.toUpperCase(), slug: region}),
     initial: parseRegionHash(location.hash)
   };
 }

@@ -138,7 +138,7 @@ function flyTo(v, dur) {
 }
 controls.addEventListener('start', () => { fly = null; tour.auto && setAuto(false); $('#hint').classList.add('gone'); });
 const keys = new Set();
-addEventListener('keydown', (e) => { if (regional?.active || e.target.closest('input, textarea, select, button, a, [contenteditable], #weatherPanel')) return; keys.add(e.key.toLowerCase()); if (e.key === 'Escape') closePanels(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePanels(); return; } if (regional?.active || e.target.closest('input, textarea, select, button, a, [contenteditable], #weatherPanel')) return; keys.add(e.key.toLowerCase()); });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 
 function resize() {

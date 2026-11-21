@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {REGIONS, CITIES, MAX_BOUNDS, createRegionalStyle, districtAt, parseRegionHash, regionHash} from '../dist/src/regions-data.js';
+import {REGIONS, CITIES, MAX_BOUNDS, overviewCamera, createRegionalStyle, districtAt, parseRegionHash, regionHash} from '../dist/src/regions-data.js';
 
 const districts = JSON.parse(fs.readFileSync(new URL('../dist/data/kerala-districts.geojson', import.meta.url), 'utf8'));
 test('all 14 Kerala district outlines contain their packaged navigation point', () => {
@@ -26,9 +26,30 @@ test('district holes are excluded from point containment', () => {
   const polygon = {type:'FeatureCollection',features:[{properties:{name:'Test'},geometry:{type:'Polygon',coordinates:[[[0,0],[4,0],[4,4],[0,4],[0,0]],[[1,1],[3,1],[3,3],[1,3],[1,1]]]}}]};
   assert.equal(districtAt(polygon,[.5,.5])?.name,'Test'); assert.equal(districtAt(polygon,[2,2]),null);
 });
-test('destinations and presets remain inside the supported peninsular extent', () => {
+test('destinations and presets remain inside the supported India extent', () => {
   for (const {ll} of CITIES) assert.ok(ll[0]>=MAX_BOUNDS[0][0]&&ll[0]<=MAX_BOUNDS[1][0]&&ll[1]>=MAX_BOUNDS[0][1]&&ll[1]<=MAX_BOUNDS[1][1]);
   for (const region of Object.values(REGIONS)) assert.ok(region.bounds[0][0]<region.bounds[1][0]&&region.bounds[0][1]<region.bounds[1][1]);
+});
+test('every regional link preserves its northern, western or eastern city coordinates', () => {
+  for (const region of Object.keys(REGIONS)) {
+    const city=CITIES.find(city=>city.region===region);
+    const camera={center:city.ll,zoom:14.8,bearing:62,pitch:68};
+    assert.deepEqual(parseRegionHash(regionHash(region,camera,17.6)),{region,camera,hour:17.6});
+  }
+});
+test('regional overviews keep their intended centre on mobile and desktop', () => {
+  for (const region of Object.keys(REGIONS)) for (const [width,height] of [[390,844],[680,670],[1280,800]]) {
+    const camera=overviewCamera(region,width,height);
+    assert.deepEqual(camera.center,REGIONS[region].centre);
+    assert.ok(Number.isFinite(camera.zoom)&&camera.zoom>=4&&camera.zoom<=8);
+    assert.deepEqual(camera.padding,{top:0,bottom:0,left:0,right:0});
+  }
+  assert.ok(overviewCamera('kerala',390,844).zoom>6);
+  assert.ok(districtAt(districts,overviewCamera('kerala',390,844).center));
+});
+test('major city jump points belong to the requested sections', () => {
+  for (const [id,region] of [['delhi','north'],['mumbai','west'],['kolkata','east'],['guwahati','east'],['leh','north']]) assert.equal(CITIES.find(city=>city.id===id)?.region,region);
+  assert.equal(new Set(CITIES.map(city=>city.id)).size,CITIES.length);
 });
 test('regional style streams real terrain and buildings and retains attribution', () => {
   const style=createRegionalStyle();

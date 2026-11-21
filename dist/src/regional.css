@@ -3,7 +3,7 @@
 body[data-region] #scene, body[data-region] #labels { visibility: hidden; }
 #regionControls { left: 22px; top: 322px; width: 282px; padding: 12px; z-index: 6; }
 .region-caption { color: var(--brass); font-size: 11px; margin: 0 2px 8px; }
-.region-switch { display: flex; gap: 3px; background: rgba(0,0,0,.16); border-radius: 99px; padding: 3px; }
+.region-switch { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; background: rgba(0,0,0,.16); border-radius: 14px; padding: 3px; }
 .region-switch button { flex: 1; border-radius: 99px; padding: 7px 6px; font-size: 12px; white-space: nowrap; color: var(--mut); }
 .region-switch button[aria-pressed=true] { background: var(--tx); color: #10262a; font-weight: 500; }
 #regionDestination { width: 100%; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: #163033; color: var(--tx); padding: 8px; font-size: 12px; }
@@ -17,10 +17,13 @@ body[data-region] #scene, body[data-region] #labels { visibility: hidden; }
 #regionLoading small { display: block; color: var(--mut); line-height: 1.6; }
 #regionRetry { color: var(--brass); padding: 10px; margin-top: 7px; }
 #regionLoading button[hidden] { display: none; }
-#regionalMap .maplibregl-ctrl-bottom-right { right: 18px; bottom: 66px; z-index: 4; max-width: min(680px,calc(100vw - 36px)); }
-#regionalMap .maplibregl-ctrl-attrib { background: rgba(10,27,30,.87); color: var(--mut); border-radius: 8px; font: 10px/1.5 var(--sans); padding: 5px 9px; }
-#regionalMap .maplibregl-ctrl-attrib a { color: #cfdbd4; }
-#regionalMap .maplibregl-ctrl-attrib-button { background-color: #a9b8b4; border-radius: 50%; }
+#regionCreditsButton { position: fixed; right: 18px; bottom: 76px; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--ink2); color: var(--mut); font: italic 600 16px/1 var(--serif); z-index: 6; }
+#regionCreditsButton[hidden] { display: none; }
+#regionCreditsButton:hover { color: var(--tx); border-color: var(--foam); }
+#regionCreditsButton:focus-visible { outline: 2px solid var(--foam); outline-offset: 3px; }
+#mapCredits:focus { outline: none; }
+#mapCredits { scroll-margin-top: 58px; }
+body[data-region] #about .ah { position: sticky; top: -20px; padding: 8px 0; background: var(--ink2); z-index: 1; }
 #regionalMap .maplibregl-canvas:focus-visible { outline: none; }
 @media(max-width:820px) {
   #regionControls { left: 10px; right: 10px; top: 124px; width: auto; padding: 6px; border-radius: 16px; }
@@ -29,12 +32,13 @@ body[data-region] #scene, body[data-region] #labels { visibility: hidden; }
   #regionDestination { margin-top: 5px; padding: 6px; }
   #regionNote { display: none; }
   #regionNote[data-error=true] { display: block; }
-  body:not([data-region]) #weatherPanel { top: 180px; }
-  body[data-region] #weatherPanel { top: 219px; }
+  body:not([data-region]) #weatherPanel { top: 216px; }
+  body[data-region] #weatherPanel { top: 254px; }
   #weatherPanel:not(.is-open) .wx-status { display: none; }
-  #weatherPanel .wx-scroll { height: min(340px, calc(100dvh - 489px)); }
+  #weatherPanel .wx-scroll { height: min(340px, calc(100dvh - 524px)); }
   #weatherPanel .wx-toggle { padding-top: 8px; }
   #weatherPanel .wx-title { font-size: 16px; }
   body[data-region=south] #title h1 { font-size: 25px; }
-  #regionalMap .maplibregl-ctrl-bottom-right { bottom: 112px; right: 10px; max-width: calc(100vw - 20px); }
+  body[data-region=north] #title h1, body[data-region=west] #title h1, body[data-region=east] #title h1 { font-size: 22px; }
+  #regionCreditsButton { bottom: 112px; right: 10px; }
 }
