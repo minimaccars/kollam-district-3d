@@ -30,6 +30,9 @@ body:not(.ready) .panel, body:not(.ready) #title, body:not(.ready) #hud, body:no
 /* title, unboxed */
 #title { position: fixed; top: 18px; left: 22px; z-index: 5; text-shadow: 0 2px 18px rgba(0, 0, 0, .55); }
 #title .ml { font: 500 15px var(--ml); color: var(--brass); margin-bottom: -2px; }
+#title .brand, #loader .brand { font: 600 10px/1 var(--sans); letter-spacing: .24em; text-transform: uppercase; color: var(--coral); }
+#title .brand { margin-bottom: 8px; }
+#loader .brand { margin-bottom: 10px; }
 #title h1 { font: 400 46px/1.02 var(--serif); letter-spacing: -.02em; font-variation-settings: "opsz" 144; }
 #title .sub { color: #dbe3df; font-size: 12.5px; margin-top: 5px; }
 #title .sub b { font-weight: 600; color: #fff; }

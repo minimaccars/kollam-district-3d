@@ -1,5 +1,7 @@
 # Kollam District 3D
 
+**Deployed as [health map.ai](https://healthmap-ai-eight.vercel.app)** — a 3D health and geography map of Kollam, Kerala and India.
+
 An adaptation of jasimcm/kozhikode-3d, preserving its original CSS, typography, 42-degree camera lens, default perspective, materials, lighting, controls and postcards. Geography is newly generated for Kollam, not relocated Kozhikode assets.
 
 **Public source and licensing:** The original weather and regional modules, their stylesheets, local server and tests are MIT-licensed; the exact file scope is in [LICENSE](LICENSE). The full application has mixed licensing: the original Kozhikode renderer has no verified code license, and some datasets have restricted or unverified terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). An upstream license or permission is still needed before the complete application can be described as fully open source.
@@ -23,6 +25,32 @@ To rebuild the district overlay from `data/raw/districts.geojson`, run `python p
 ## Run the supplied build
 
 Install Node.js, then run `node server.mjs` from this folder. Open http://127.0.0.1:5184. The supplied build needs no API key. Google Fonts requires network access. Do not open index.html directly from a file URL: module and asset requests need HTTP.
+
+## Deployments
+
+The same static `dist/` build is published to three places.
+
+| Target | Account | URL |
+| --- | --- | --- |
+| GitHub | `minimaccars` | https://github.com/minimaccars/kollam-district-3d |
+| Vercel (primary) | `minimaccars@gmail.com` | https://healthmap-ai-eight.vercel.app |
+| Vercel (legacy) | `anwarsadique615@gmail.com` | https://healthmap-ai-ten.vercel.app |
+| Firebase Hosting | `demo1-f3e4c` | https://demo1-f3e4c.web.app |
+
+Push to `main` first, then publish:
+
+```sh
+git push origin main
+
+# Firebase Hosting (config lives in .firebaserc and firebase.json)
+firebase deploy --only hosting
+
+# Vercel, primary project "healthmap-ai" (minimaccars account)
+# Run from a folder containing dist/ and vercel.json.
+vercel deploy --prod --project healthmap-ai
+```
+
+`firebase.json` serves `dist/` with `cleanUrls` and cache headers for `/data` and `/vendor`. The Vercel project uses `vercel.json` with `framework: null` and `outputDirectory: dist`. The legacy Vercel project is intentionally kept as a separate deployment and is not deleted.
 
 ## Coverage and limitations
 
